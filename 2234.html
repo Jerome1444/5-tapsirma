@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="kaa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Web Sensor – Dáreje Ólshegish</title>
+    <style>
+        /* CSS bólimi */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 { color: #333; font-size: 24px; }
+        p { font-size: 18px; color: #555; margin: 5px 0; }
+
+        .level-border {
+            width: 250px;
+            height: 250px;
+            border: 8px solid #333;
+            border-radius: 50%;
+            position: relative;
+            margin: 30px auto;
+            background: radial-gradient(circle, #ffffff 10%, #e0e0e0 100%);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+        }
+
+        #bubble {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle at 30% 30%, #2ecc71, #27ae60);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: 0.1s linear;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Ortadaǵı nıshana (crosshair) */
+        .level-border::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 20px; height: 2px;
+            background: rgba(0,0,0,0.2);
+            transform: translate(-50%, -50%);
+        }
+        .level-border::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 2px; height: 20px;
+            background: rgba(0,0,0,0.2);
+            transform: translate(-50%, -50%);
+        }
+
+        #start-btn {
+            padding: 15px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            background: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background 0.3s;
+            box-shadow: 0 5px 15px rgba(41, 128, 185, 0.4);
+        }
+
+        #start-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Smartfon múyeshi:</h1>
+        <p>X: <span id="x-axis">0</span>°</p>
+        <p>Y: <span id="y-axis">0</span>°</p>
+        
+        <div class="level-border">
+            <div id="bubble"></div>
+        </div>
+        
+        <button id="start-btn">Sensordı jaǵıń</button>
+    </div>
+
+    <script>
+        /* JavaScript bólimi */
+        const bubble = document.getElementById('bubble');
+        const xDisplay = document.getElementById('x-axis');
+        const yDisplay = document.getElementById('y-axis');
+        const startBtn = document.getElementById('start-btn');
+
+        function handleOrientation(event) {
+            // Beta: aldy-artqa búgiliw (-180 to 180)
+            // Gamma: oń-shepke búgiliw (-90 to 90)
+            let y = event.beta;  
+            let x = event.gamma; 
+
+            // Máńislerdi sheklew (Dáreje ólshegish shegarasınan shıqpawı ushın)
+            if (x > 45) x = 45;
+            if (x < -45) x = -45;
+            if (y > 45) y = 45;
+            if (y < -45) y = -45;
+
+            // Ekranda dáreje mánislerin kórsetiw
+            xDisplay.textContent = Math.round(x);
+            yDisplay.textContent = Math.round(y);
+
+            // Sharikti (bubble) háreketlendiriw
+            // 2.5 koefficiyenti shariktiń sezgirligin támiyinleydi
+            const moveX = (x * 2.5); 
+            const moveY = (y * 2.5);
+
+            bubble.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+        }
+
+        startBtn.addEventListener('click', () => {
+            // iOS 13+ qurılmaları ushın sensorǵa ruqsat soraw
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            startBtn.style.display = 'none'; 
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // Android hám basqa brauzerler ushın tuwridan-tuwri qosıw
+                window.addEventListener('deviceorientation', handleOrientation);
+                startBtn.style.display = 'none'; 
+            }
+        });
+    </script>
+</body>
+</html>
